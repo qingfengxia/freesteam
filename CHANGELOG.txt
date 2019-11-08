@@ -1,0 +1,205 @@
+FREESTEAM CHANGELOG
+===================
+
+3.0
+08 Nov 2019
+-----------
+
+- no new feature added, but cmake build system added (Qingfeng Xia)
+
+
+2.1
+11 Apr 2013
+-----------
+
+- Add surface tension calculation
+- Added (T,s,p) surface plots (Rod Stephenson)
+- Addes speed of sound calculation for Region 3 (Garrett Greet)
+- GTK+ GUI (Carlo Tegano)
+- Experimental Qt GUI (Carlo)
+- Experimental PyQt GUI (Juan-Jose Gomera)
+- Ability to access transport properties from ASCEND
+- Experimental LabVIEW bindings (Andrew Young)
+- Fixed bug #522 with sonames on Gentoo (Michal Gorny)
+
+
+2.0
+24 Jan 2009
+-----------
+
+- Complete rewrite in plain C
+- Two-way solver now makes use of GSL, instead of being standalone.
+- New APIs for C, Python and ASCEND
+- Extended the use of 'reverse' equations e.g. for (p,h)
+- Updated to new IAPWS-IF97 release documents.
+- Included code for generation of (p,h) and other diagrams.
+- Added Debian packaging meta-info (with multiple packages)
+- freesteam-config package updated to new C API.
+- Added README.txt file.
+- Changed SONAME of libfreesteam.so to '.1.0' due to new API.
+
+0.8.1
+Monday, 15 October 2007
+-----------------------
+
+General
+- Added some test cases to check viscosity correlation in test.py
+
+For Windows users:
+- Fixed bug in isinfnan.h (missing #include <math.h>), with thanks to
+  Bruna Abreu Calfa.
+
+0.8
+Friday, 21 September 2007
+-------------------------
+
+General:
+- Fixed errors in the conductivity correlation.
+- Some methods in steamcalculator.h have had their parameters changed.
+- Fixed incorrect interpolation of densities in the saturation region.
+- Added ASCEND model to calculate moist air properties.
+- Added support for a 'freesteam-config' program.
+- Added 'mW/mK' to measurement.cpp for conductivity values.
+
+0.7.2
+Sunday, 19 August 2007
+----------------------
+
+General:
+- libfreesteam is now a shared library/DLL.
+
+For Windows users:
+- ASCEND hook DLL renamed to freesteam_ascend.dll for use with
+  current ASCEND (0.9.5.113 and newer)
+- Static library has been changed to a shared library (DLL) on Windows
+  to reduce duplication of code between Python module and core DLL.
+- Changed name of Python module to _freesteam.pyd in line with
+  the new requirements of Python 2.5.
+
+For Linux users:
+- Various improvements to RPM packaging.
+- Improved detection of ASCEND at compile-time.
+
+0.7.1
+Monday, 12 March 2007
+---------------------
+An update for users of the Windows installer, primarily:
+- Added missing header files in the Windows installer (woops)
+- Added example C++ code plus Makefile/SConstruct for Windows users.
+Also added a significant number of new function bindings for the
+ASCEND interface.
+
+0.7
+Thursday, 18 January, 2007
+--------------------------
+Added a Windows binary installer that static library (.a) for use with 
+MinGW GCC compiler, Python bindings ("from freesteam import *"), and
+external functions for use with the ASCEND modelling environment.
+
+0.6.2
+Wednesday, 17 January, 2007
+---------------------------
+Correcting the conversion factor for psi, so: Measurement(1,"bar").to("psi")
+Some enhancements to the ASCEND modelling environment bindings.
+
+0.6.1
+Friday, 7 July 2006
+-------------------
+Removing some binary files that crept into the last release.
+
+0.6
+Friday, 7 July 2006
+-------------------
+Switched to the 'SCons' build tool. Autotools no longer supported.
+Fixed a memory leak during two-phase calculations
+Added Python bindings to allow steam calculations from Python.
+Added experimental bindings to the ASCEND modelling environment.
+Added 'Measurement' class to allow interfacing 'Units' class with Python.
+
+0.5.5
+Tuesday, 13 December 2005
+-------------------------
+Fixed to compile under GCC 4.01
+Fixed a very minor error in the IAPWS-95 correlation
+Tightened tolerance on phir,phi0 (etc) test in IAPWS-95 correlation tests.
+
+
+0.5.4
+Thursday, 2 June 2005
+---------------------
+Minor fixes to Solver2 debug output
+Minor fixes to EMSO hook library
+Added diagram type p-u
+Added new EMSO CalcObject for pipe friction
+EMSO test models: pipe with pressure drop
+
+
+0.5.3
+Tuesday, 22 March 2005
+----------------------
+Added command line arguments to diagram.cli.cpp.
+EMSO hook library can now report available methods if invalid method attemped.
+EMSO test models: added pump curve, rankine cycle.
+
+
+0.5.2
+Saturday, 12 March 2005
+-----------------------
+Added two-way T,h solver
+Property plots with log axes where required
+Minor bug fixes
+
+
+0.5.1
+Tuesday, 8 March 2005
+---------------------
+Fixed typos in EMSO integration file
+
+
+0.5
+Monday, 7 March 2005
+--------------------
+Expanded two-way solver to u,v, p,h, p,T, p,u, p,s, T,s.
+Changed to a tree directory structure
+Can now build on MinGW
+Integration with 'EMSO' simulation software mostly complete
+Preliminary integration with 'EES' solver software started
+Fixed a memory leak occuring with re-thrown exceptions
+
+
+0.4
+Wednesday, 23 February 2005
+---------------------------
+Expanded two-way solver to u,v (all regions), p,h, p,u
+Added a 'first guess' option which can be used as a framework for integrating backwards correlations safely
+Added a little CLI app (diagram.cli) to plot boundary curves on arbitrary axes via MATLAB
+Made tolerance on SatCurve solver finer to correct Solver2 problems
+
+
+0.3.1
+Friday, 11 February 2005
+------------------------
+Ported to GCC 3.4: just minor changes
+
+
+0.3 
+Thursday, 10 February 2005
+--------------------------
+Added two-way solver routine (u,v) and a general framework for making others
+Fixed bugs in the one-way solver
+const-ified many methods
+Added lots more tests
+Changed the saturation curve correlation for T > T_REG1_REG3
+
+
+0.2
+--------------------------
+Added support for solver routines to specify state in terms of (p,u), (p,s), (p,v), (T,u), (T,s), (T,v)
+Added more tests
+Added IAPWS-95 routines and comparison test for IF-97 vs 95.
+
+
+0.1
+--------------------------
+First public release
+

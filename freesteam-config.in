@@ -1,0 +1,98 @@
+#!@PYTHON@
+from optparse import OptionParser
+import sys, platform, os.path
+
+#---------------------
+# This file is generated automatically by SCons and installed in at INSTALL_BIN.
+# Use it to query for local configuration of FREESTEAM on your system for example
+# when building external 'plugins' such as external computations and external
+# solvers etc.
+#
+# It's written in python since (because of SCons) we know we have Python on 
+# this system already but we don't know that about unix shell (eg on Windows).
+#
+# Note that SCons supports reading of the output from this script, using
+# features offered since version 0.96.91, although this functionality
+# has at times been problematic on the Windows platform, and/or when paths
+# contain spaces.
+#
+# This file inspired by other software that uses the same approach, eg
+# ginac-config, xft-config, cppunit-config.
+#
+# Type freesteam-config --help for usage.
+#---------------------
+
+# platform specific name munging for '-L' and '-I' file paths...
+munge = lambda s: s
+
+if platform.system()=="Windows":
+	import _winreg
+	x=_winreg.ConnectRegistry(None,_winreg.HKEY_LOCAL_MACHINE)
+	y= _winreg.OpenKey(x,r"SOFTWARE\FREESTEAM")
+	BIN,t = _winreg.QueryValueEx(y,"Install_Dir")	
+	_winreg.CloseKey(y)
+	_winreg.CloseKey(x)
+
+	LIB = os.path.join(BIN,"lib")
+	INCLUDE = os.path.join(BIN,"include")
+	
+	try:
+		# if we have access to GetShortPathName, we'll use it...
+		import win32api
+		def munge1(s):
+			s1 = s
+			try:
+				# we can only munge the path if it actually exists
+				s1 = win32api.GetShortPathName(s)
+				s1 = s1.replace("\\","\\\\")
+			except:
+				# if it doesn't exist, we just return the un-munged path
+				pass
+			return s1
+		munge = munge1 
+	except:
+		pass		
+else:
+	# If we're not in Windows, use the original values passed to us from SCons:
+	LIB="@INSTALL_LIB@"
+	BIN="@INSTALL_BIN@"
+	INCLUDE="@INSTALL_INCLUDE@"
+
+usage = "usage: %prog [--help,...]"
+# the rest of this script is about returning those values in the standard way
+parser = OptionParser(usage=usage, version="@VERSION@")
+
+parser.add_option("--libs", action="store_true", dest="libs", help="show linker flags (for freesteam libraries)")
+parser.add_option("--cppflags", action="store_true", dest="cppflags", help="show C pre-processor flags (for freesteam header files)")
+
+(options, args) = parser.parse_args()
+
+ok = False
+
+if options.cppflags:
+	include = ""
+	if INCLUDE!="/usr/include":
+		include=INCLUDE
+	if -1!=include.find(" "):
+		print "-I"+munge(include)+""
+	elif len(include):
+		print "-I"+include
+	ok = True
+
+if options.libs:
+	libs = ""
+	if LIB!="/usr/lib":
+		libs = LIB
+	if -1!=libs.find(" "):
+		print "-L"+munge(libs)+" -lfreesteam"
+	else:
+		Lflag  = ""
+		if len(libs):
+			Lflag = "-L"+libs+" "
+		print Lflag + "-lfreesteam"
+	ok = True
+
+if not ok:
+	sys.stderr.write("invalid option '%s' (use --help for more info)\n" % args)
+	sys.exit(1)
+

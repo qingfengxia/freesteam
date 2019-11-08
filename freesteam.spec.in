@@ -1,0 +1,208 @@
+%define pyver %(python -c 'import sys ; print sys.version[:3]')
+%define ascendversion %(ascend-config --version)
+%define ASCEND_MODELS %(ascend-config --models)
+
+# comment out the following line if you want a monolithic RPM
+%define freesteam_split 1
+
+Name:		freesteam
+Summary:	Calculate properties of water and steam (IAPWS-IF97 correlations)
+Version:	@VERSION@
+
+# Following values are filled in by SCons when .spec.in file converted to .spec:
+%define SONAME_MAJOR @SONAME_MAJOR@
+%define SONAME_MINOR @SONAME_MINOR@
+
+# Use release 0.* so that other users can do patch releases with a higher number
+# and still have the update occur automatically.
+Release:	0%{?dist}
+
+License:	GPLv2+
+Group:		Applications/Engineering
+Source:		http://downloads.sourceforge.net/project/freesteam/freesteam/%{version}/%{name}-%{version}.tar.bz2
+URL:		http://freesteam.sourceforge.net/
+
+#Prefix:		%{_prefix}
+Packager:	John Pye
+Vendor:		John Pye
+#BuildRoot:	%{_tmppath}/%{name}-%{version}-root
+
+BuildRequires: python-devel >= 2.7
+BuildRequires: scons >= 2.0, swig >= 2.0
+BuildRequires: blas
+BuildRequires: ascend-devel
+BuildRequires: gcc
+
+
+%{?filter_setup:
+%filter_setup
+}
+
+%description
+Calculate the properties of water and steam using the IAPWS-IF97 correlations.
+This is a C-based code library implementing most of those correlations, and
+includes test code to validate the results, a GTK-based GUI, and wrappers to
+allow access from Python and ASCEND languages.
+
+#----------------------------------
+%if %{defined freesteam_split}
+%package ascend
+Summary: Water/steam properties functions for use with ASCEND
+Group: Applications/Engineering
+Requires: %{name} = %{version}-%{release}
+Requires: ascend%{?_isa}
+%description ascend
+ASCEND bindings for the freesteam steam tables library. This package allows
+IAPWS-IF97 steam tables to be used in ASCEND for modelling of water/steam
+equipment models.
+
+%package python
+Summary: Water/steam properties functions for use with Python
+Group: Applications/Engineering
+Requires: %{name} = %{version}-%{release}
+Requires: python%{?_isa}
+%description python
+Python bindings for the freesteam steam tables library. This package allows
+IAPWS-IF97 steam tables to be calculated using the Python scripting language.
+%endif
+
+%package devel
+Summary: Developer files for freesteam
+Group: Applications/Engineering
+Requires: %{name} = %{version}-%{release}
+#for the 'freesteam-config' script
+Requires: python
+%description devel
+Developer files for the freesteam IAPWS steam properties library, including
+C++ header files and shared library symlinks.
+
+%package gtk
+Summary: Calculate water and steam properties (GUI)
+Group: Applications/Engineering
+Requires: %{name} = %{version}-%{release}
+%description gtk
+Interactive GUI for freesteam IAPWS steam properties library, allows
+quick evaluation of steam properties for a range of specified property
+pairs, eg (p,h), (p,T), (p,s), (T,x) etc.
+
+#-----------------------------------
+
+%prep
+%setup -q 
+
+%build
+rm -rf %{buildroot}
+mkdir -p %{buildroot}%{_prefix}
+mkdir -p %{buildroot}%{_libdir}
+mkdir -p %{buildroot}%{_includedir}
+mkdir -p %{buildroot}%{_includedir}
+mkdir -p %{buildroot}%{_datadir}
+mkdir -p %{buildroot}%{ASCEND_MODELS}
+scons %{?_smp_mflags} \
+		%{?__cc:CC="%__cc"} \
+		DEBUG=1 \
+	ascend python
+
+%install
+scons %{?_smp_mflags} \
+		INSTALL_ROOT=%{buildroot} \
+		INSTALL_PREFIX=%{_prefix} \
+		INSTALL_BIN=%{_bindir} \
+		INSTALL_LIB=%{_libdir} \
+		INSTALL_PYTHON=%{_libdir}/python%{pyver}/site-packages \
+		LIBDIR=%{_libdir} \
+		INCDIR=%{_includedir} \
+		INSTALL_SHARE=%{_datadir} \
+		DEBUG=1 \
+	install
+
+# Fix uninstalled files
+mkdir -p %{buildroot}%{_libdir}/python%{pyver}/site-packages/
+cp python/freesteam.py %{buildroot}%{_libdir}/python%{pyver}/site-packages/
+cp python/_freesteam.so %{buildroot}%{_libdir}/python%{pyver}/site-packages/
+
+# GTK GUI icon/.desktop file
+cd gtk/gnome
+install -m 644 -D freesteam-gtk.desktop %{buildroot}%{_datadir}/applications/freesteam-gtk.desktop
+install -m 644 -D freesteam-gtk-64x64.png %{buildroot}%{_datadir}/icons/freesteam-gtk-app.png
+install -m 644 -D freesteam-gtk-64x64.png %{buildroot}%{_datadir}/icons/hicolor/64x64/freesteam-gtk-app.png
+cd ../..
+
+install -m 644 -D man/freesteam-config.man %{buildroot}%{_mandir}/man1/freesteam-config.1
+install -m 644 -D gtk/freesteam-gtk.man %{buildroot}%{_mandir}/man1/freesteam-gtk.1
+
+chmod 0755 %{buildroot}%{_libdir}/lib%{name}.so%{SONAME_MAJOR}
+chmod 0755 %{buildroot}%{_libdir}/python%{pyver}/site-packages/_freesteam.so
+chmod 0755 %{buildroot}%{ASCEND_MODELS}/libfreesteam_ascend.so
+
+%clean
+rm -rf %{buildroot}
+
+%post -p /sbin/ldconfig
+
+%postun -p /sbin/ldconfig
+
+%files
+%doc CHANGELOG.txt README.txt LICENSE.txt
+%{_libdir}/libfreesteam.so.*
+
+#----------------------------
+%if %{defined freesteam_split}
+%files ascend
+%defattr(-, root, root)
+%endif
+%{ASCEND_MODELS}/libfreesteam_ascend.so
+%{ASCEND_MODELS}/freesteam/*.a4c
+
+%if %{defined freesteam_split}
+%files python
+%defattr(-, root, root)
+%endif
+%{_libdir}/python%{pyver}/site-packages/freesteam.py*
+%{_libdir}/python%{pyver}/site-packages/_freesteam.so
+
+%if %{defined freesteam_split}
+%files devel
+%defattr(-, root, root)
+%endif
+%{_bindir}/freesteam-config
+%{_includedir}/%{name}/*.h
+#%{_includedir}/%{name}/freesteam.i
+%{_libdir}/lib%{name}.so
+%{_datadir}/freesteam/examples
+%{_mandir}/man1/freesteam-config.1*
+
+%if %{defined freesteam_split}
+%files gtk
+%defattr(-, root, root)
+%endif
+%{_bindir}/freesteam-gtk
+%{_datadir}/icons/*
+%{_datadir}/applications/*
+%{_datadir}/freesteam/freesteam-gtk.glade
+%{_mandir}/man1/freesteam-gtk.1*
+
+#-----------------------------
+
+%changelog
+* Tue Dec 18 2012 John Pye <john.pye@anu.edu.au> 2.1
+- Update to Fedora 17 64-bit
+- Include new GTK GUI in package
+
+* Mon Aug 20 2007 John Pye <john@curioussymbols.com> 0.7.3
+- Starting work on 0.7.3
+
+* Sun Aug 19 2007 John Pye <john@curioussymbols.com> 0.7.2
+- Updated for 0.7.2
+- Split ASCEND and Python parts into sub-packages.
+- Renamed ASCEND external library
+- Implemented correct 'soname' library versioning for libfreesteam.
+- Fixed detection of ascend-config.
+
+* Wed Oct 25 2006 John Pye <john.pye@student.unsw.edu.au> 0.6.1
+- Added to sf.net CVS repository, updating for use with scons
+
+* Wed Sep 27 2006 Christophe Trophime <christophe.trophime@grenoble.cnrs.fr>
+- Initial build for fc5
+
+

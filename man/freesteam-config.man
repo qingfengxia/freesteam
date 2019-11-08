@@ -1,0 +1,25 @@
+.TH freesteam-config 1 "April 21, 2007" freesteam "User's Manual"
+.SH NAME
+freesteam-config \- Output configuration data for freesteam
+
+.SH SYNOPSIS
+.B Usage: freesteam-config [--help,...]
+
+Options:
+  --version   show program's version number and exit
+  -h, --help  show this help message and exit
+  --libs      show linker flags (for freesteam libraries)
+  --cppflags  show C pre-processor flags (for freesteam header files)
+
+.SH DESCRIPTION
+
+\fBfreesteam-config\fR can be used when building packages that depend
+on freesteam, ensuring that you are using the correct C preprocessor or
+library linking flags for the particular system you're on.
+
+\fBfreesteam\fR is steam properties library that allows you to calculate
+the properties of water and steam over a wide range or pressures and
+temperatures. For more information see the freesteam website at
+
+http://freesteam.sourceforge.net/
+
